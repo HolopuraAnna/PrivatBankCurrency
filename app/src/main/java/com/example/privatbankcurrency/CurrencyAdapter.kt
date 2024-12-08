@@ -8,8 +8,13 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.privatbankcurrency.item.ExchangeRate
 
-class CurrencyAdapter(private val exchangeRates: List<ExchangeRate>) :
+class CurrencyAdapter(private var exchangeRates: List<ExchangeRate>) :
     RecyclerView.Adapter<CurrencyAdapter.CurrencyViewHolder>() {
+
+    fun updateData(newExchangeRates: List<ExchangeRate>) {
+        exchangeRates = newExchangeRates
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CurrencyViewHolder {
         val view = LayoutInflater.from(parent.context)

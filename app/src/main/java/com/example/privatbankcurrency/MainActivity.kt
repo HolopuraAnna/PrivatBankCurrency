@@ -1,6 +1,7 @@
 package com.example.privatbankcurrency
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
@@ -10,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.privatbankcurrency.databinding.ActivityMainBinding
+import com.example.privatbankcurrency.item.ExchangeRate
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -19,12 +22,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var yearSpinner: Spinner
     private lateinit var currencyRecyclerView: RecyclerView
     private lateinit var currencyAdapter: CurrencyAdapter
-
+    private lateinit var binding: ActivityMainBinding
     private val currencyViewModel: CurrencyViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Initialize Views
         daySpinner = findViewById(R.id.daySpinner)
@@ -37,10 +41,14 @@ class MainActivity : AppCompatActivity() {
         setupSpinners()
 
         // Observe exchange rates
-        currencyViewModel.exchangeRates.observe(this, Observer { exchangeRates ->
+        val myObserver = Observer<List<ExchangeRate>> { exchangeRates ->
             currencyAdapter = CurrencyAdapter(exchangeRates)
             currencyRecyclerView.adapter = currencyAdapter
-        })
+            Log.d("MainActivity", "Observed exchange rates: $exchangeRates")
+        }
+        currencyViewModel.exchangeRates.observe(this, myObserver)
+
+        binding.currencyRecyclerView.layoutManager = LinearLayoutManager(this) ///
 
         // Observe error messages
         currencyViewModel.errorMessage.observe(this, Observer { message ->
@@ -83,11 +91,12 @@ class MainActivity : AppCompatActivity() {
 
     private val dateSelectionListener = object : AdapterView.OnItemSelectedListener {
         override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
+            Log.d("MainActivity", "Spinner selected: ${parent?.selectedItem}")
             fetchExchangeRatesFromSpinners()
         }
 
         override fun onNothingSelected(parent: AdapterView<*>?) {
-            // Do nothing
+            Log.d("MainActivity", "No spinner selection")
         }
     }
 
@@ -97,6 +106,7 @@ class MainActivity : AppCompatActivity() {
         val year = yearSpinner.selectedItem.toString()
 
         val selectedDate = "$day.$month.$year" // Format: "dd.MM.yyyy"
+        Log.d("MainActivity", "Fetching exchange rates for date: $selectedDate")
         currencyViewModel.fetchExchangeRates(selectedDate)
     }
 }

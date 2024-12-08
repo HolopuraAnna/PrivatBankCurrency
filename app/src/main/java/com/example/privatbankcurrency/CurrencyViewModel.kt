@@ -1,5 +1,6 @@
 package com.example.privatbankcurrency
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -21,13 +22,16 @@ class CurrencyViewModel : ViewModel() {
     fun fetchExchangeRates(date: String) {
         val service = RetrofitPrivate.service
         val call = service.getExchangeRates(date)
+        Log.d("CurrencyViewModel", "Fetching rates for date: $date")
 
         call?.enqueue(object : Callback<CurrencyItem> {
             override fun onResponse(call: Call<CurrencyItem>, response: Response<CurrencyItem>) {
+                Log.d("CurrencyViewModel", "response: $response")
                 if (response.isSuccessful) {
                     val rates = response.body()?.exchangeRate?.filterNotNull() ?: emptyList()
                     _exchangeRates.postValue(rates)
                 } else {
+                    Log.e("CurrencyViewModel", "Response failed: Code ${response.code()}, Message: ${response.message()}")
                     _errorMessage.postValue("Failed to load data: ${response.message()}")
                 }
             }
